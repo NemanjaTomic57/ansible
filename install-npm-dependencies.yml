@@ -1,0 +1,22 @@
+---
+- name: Install npm dependencies
+  hosts: all
+
+  tasks:
+
+    - name: Install apt dependencies
+      become: true
+      apt:
+        name: npm
+        update_cache: true
+
+    - name: Copy workspace folder
+      copy:
+        src: ./workspace
+        dest: /home/vagrant
+        owner: vagrant
+
+    - name: Install npm dependencies
+      community.general.npm:
+        path: /home/vagrant/workspace
+
