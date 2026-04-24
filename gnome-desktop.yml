@@ -10,4 +10,3 @@
         name:
           - gnome
           - gdm3
-        state: latest
