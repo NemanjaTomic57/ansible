@@ -1,0 +1,27 @@
+---
+- name: Install Go
+  hosts: all
+
+  vars:
+    go_version: 1.26.2
+
+  tasks:
+
+    - name: Download Go
+      get_url:
+        url: "https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz"
+        dest: /tmp/go.tar.gz
+
+    - name: Extract Go
+      become: true
+      unarchive:
+        src: /tmp/go.tar.gz
+        dest: /usr/local
+        remote_src: yes
+
+    - name: Add Go to PATH
+      become: true
+      copy:
+        dest: /etc/profile.d/go.sh
+        content: |
+          export PATH=$PATH:/usr/local/go/bin
