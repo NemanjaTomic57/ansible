@@ -1,0 +1,16 @@
+---
+- name: Install kubectl
+  hosts: all
+
+  vars:
+    url: https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+
+  tasks:
+
+    - name: Install kubectl 
+      become: true
+      shell: |
+        curl -Lo /tmp/kubectl {{ url }}
+        sudo install -o root -g root -m 0755 /tmp/kubectl /usr/local/bin/kubectl
+      args:
+        creates: /usr/local/bin/kubectl
