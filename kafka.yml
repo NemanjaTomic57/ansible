@@ -1,10 +1,16 @@
 ---
-- name: Install and configure Kafka
+- name: Install Kafka and add to PATH
   hosts: all
 
   vars:
+    # Download variables
     kafka_url: https://downloads.apache.org/kafka/4.2.0/kafka_2.13-4.2.0.tgz
     kafka_archive: kafka_2.13-4.2.0.tgz
+
+    # Installation path
+    kafka: /home/vagrant/kafka
+    kafka_install_dir: "{{ kafka }}/kafka_2.13-4.2.0"
+    kafka_bin: "{{ kafka_install_dir }}/bin"
 
   tasks:
     - name: Install apt dependencies
@@ -12,6 +18,12 @@
       ansible.builtin.apt:
         name:
           - default-jdk
+
+    - name: Create ~/kafka folder
+      ansible.builtin.file:
+        path: "{{ kafka }}"
+        state: directory
+        mode: "0600"
 
     - name: Check if Kafka is already installed
       ansible.builtin.stat:
