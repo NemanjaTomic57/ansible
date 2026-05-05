@@ -73,3 +73,20 @@
       ansible.builtin.command: /usr/local/go/bin/go install sigs.k8s.io/kind@v0.31.0
       args:
         creates: /home/vagrant/go/bin/kind
+
+- name: Install kubectl
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Get latest kubectl version
+      ansible.builtin.uri:
+        url: https://dl.k8s.io/release/stable.txt
+        return_content: true
+      register: kubectl_version
+
+    - name: Download kubectl binary
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_version.content }}/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
