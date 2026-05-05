@@ -28,4 +28,3 @@
           export PATH=$PATH:/usr/local/go/bin
           export PATH=$PATH:/home/vagrant/go/bin
         mode: "0555"
-
