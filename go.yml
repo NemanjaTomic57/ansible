@@ -8,20 +8,24 @@
   tasks:
 
     - name: Download Go
-      get_url:
+      ansible.builtin.get_url:
         url: "https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz"
         dest: /tmp/go.tar.gz
+        mode: "0500"
 
     - name: Extract Go
       become: true
-      unarchive:
+      ansible.builtin.unarchive:
         src: /tmp/go.tar.gz
         dest: /usr/local
-        remote_src: yes
+        remote_src: true
 
     - name: Add Go to PATH
       become: true
-      copy:
+      ansible.builtin.copy:
         dest: /etc/profile.d/go.sh
         content: |
           export PATH=$PATH:/usr/local/go/bin
+          export PATH=$PATH:/home/vagrant/go/bin
+        mode: "0555"
+

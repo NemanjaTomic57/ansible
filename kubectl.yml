@@ -1,16 +1,17 @@
 ---
 - name: Install kubectl
   hosts: all
-
-  vars:
-    url: https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+  become: true
 
   tasks:
+    - name: Get latest kubectl version
+      ansible.builtin.uri:
+        url: https://dl.k8s.io/release/stable.txt
+        return_content: true
+      register: kubectl_version
 
-    - name: Install kubectl 
-      become: true
-      shell: |
-        curl -Lo /tmp/kubectl {{ url }}
-        sudo install -o root -g root -m 0755 /tmp/kubectl /usr/local/bin/kubectl
-      args:
-        creates: /usr/local/bin/kubectl
+    - name: Download kubectl binary
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_version.content }}/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'

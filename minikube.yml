@@ -3,22 +3,42 @@
   hosts: all
 
   vars:
-    minikube_install: /tmp/minikube
+    minikube_url: https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+    minikube_tmp: /tmp/minikube
+    minikube_bin: /usr/local/bin/minikube
 
   tasks:
 
     - name: Install apt dependencies
       become: true
-      apt:
+      ansible.builtin.apt:
         name:
           - podman
+          - curl
         update_cache: true
 
-    - name: Install minikube
+    - name: Check if minikube already exists
+      ansible.builtin.stat:
+        path: "{{ minikube_bin }}"
+      register: minikube_stat
+
+    - name: Download minikube binary
       become: true
-      shell: |
-        curl -Lo {{ minikube_install }} https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
-        install {{ minikube_install }} /usr/local/bin/minikube
-        rm {{ minikube_install }}
+      ansible.builtin.get_url:
+        url: "{{ minikube_url }}"
+        dest: "{{ minikube_tmp }}"
+        mode: '0755'
+      when: not minikube_stat.stat.exists
+
+    - name: Install minikube using install command
+      become: true
+      ansible.builtin.command: install {{ minikube_tmp }} {{ minikube_bin }}
       args:
-        creates: /usr/local/bin/minikube
+        creates: "{{ minikube_bin }}"
+      when: not minikube_stat.stat.exists
+
+    - name: Remove temporary file
+      become: true
+      ansible.builtin.file:
+        path: "{{ minikube_tmp }}"
+        state: absent
