@@ -4,7 +4,6 @@
   become: true
 
   tasks:
-
     - name: Set up Docker's apt repository
       ansible.builtin.script: ./docker.sh
 

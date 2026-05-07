@@ -6,7 +6,6 @@
     go_version: 1.26.2
 
   tasks:
-
     - name: Download Go
       ansible.builtin.get_url:
         url: "https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz"

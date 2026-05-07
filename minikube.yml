@@ -8,7 +8,6 @@
     minikube_bin: /usr/local/bin/minikube
 
   tasks:
-
     - name: Install apt dependencies
       become: true
       ansible.builtin.apt:

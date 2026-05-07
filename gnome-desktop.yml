@@ -4,9 +4,8 @@
   become: true
 
   tasks:
-
     - name: Install apt packages
-      apt:
+      ansible.builtin.apt:
         name:
           - gnome
           - gdm3

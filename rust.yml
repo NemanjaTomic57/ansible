@@ -3,15 +3,16 @@
   hosts: all
 
   tasks:
-
     - name: Install Rust (rustup)
-      shell: curl https://sh.rustup.rs -sSf | sh -s -- -y
+      ansible.builtin.shell: |
+        set -o pipefail
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
       args:
         creates: /home/vagrant/.cargo/bin/cargo
 
     - name: Add cargo to global PATH
       become: true
-      copy:
+      ansible.builtin.copy:
         dest: /etc/profile.d/rust.sh
         content: 'export PATH="/home/vagrant/.cargo/bin:$PATH"'
-
+        mode: "0444"

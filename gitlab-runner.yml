@@ -7,7 +7,6 @@
     gitlab_runner_binary: "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-amd64"
 
   tasks:
-
     - name: Set up Docker's apt repository
       ansible.builtin.script: ./docker.sh
 
@@ -24,7 +23,7 @@
       ansible.builtin.service:
         name: docker
         state: started
-        enabled: yes
+        enabled: true
 
     - name: Install GitLab Runner binary
       ansible.builtin.get_url:
@@ -36,7 +35,7 @@
       ansible.builtin.user:
         name: gitlab-runner
         shell: /bin/bash
-        create_home: yes
+        create_home: true
         comment: "GitLab Runner"
 
     - name: Check if gitlab-runner service exists
@@ -47,11 +46,10 @@
     - name: Install GitLab runner as a service
       ansible.builtin.command: >
         gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
-      when: not runner_service.stat.exists
+      changed_when: not runner_service.stat.exists
 
     - name: Ensure GitLab Runner is running
       ansible.builtin.service:
         name: gitlab-runner
         state: started
-        enabled: yes
-
+        enabled: true
