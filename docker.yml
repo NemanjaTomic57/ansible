@@ -36,7 +36,6 @@
           - docker-compose-plugin
         state: present
         update_cache: true
-        cache_valid_time: 3600
 
     - name: Create docker group
       ansible.builtin.group:
