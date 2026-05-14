@@ -18,6 +18,8 @@
       ansible.builtin.apt:
         name:
           - default-jdk
+        update_cache: true
+        cache_valid_time: 3600
 
     - name: Create ~/kafka folder
       ansible.builtin.file:
