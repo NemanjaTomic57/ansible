@@ -62,6 +62,12 @@
         content: 'export PATH="/opt/nvim-linux-x86_64/bin:$PATH"'
         mode: '0755'
 
+    - name: Ensure Neovim config parent directory exists
+      ansible.builtin.file:
+        path: /home/vagrant/.config
+        state: directory
+        mode: '0755'
+
     - name: Sync Neovim configuration
       ansible.posix.synchronize:
         src: "{{ nvim_config_src }}/"
