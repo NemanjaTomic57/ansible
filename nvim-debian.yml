@@ -6,13 +6,15 @@
     nvim_url: https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
     nvim_install_dir: /opt/nvim-linux-x86_64
     nvim_config_src: /home/nemo/.config/nvim/
-    go_version: 1.26.2
+    go_version: 1.26.3
+    go_checksum: 2b2cfc7148493da5e73981bffbf3353af381d5f93e789c82c79aff64962eb556
 
   tasks:
     - name: Install apt dependencies
       become: true
       ansible.builtin.apt:
         name:
+          - rsync
           - git
           - luarocks
           - python3-pip
@@ -60,11 +62,11 @@
         content: 'export PATH="/opt/nvim-linux-x86_64/bin:$PATH"'
         mode: '0755'
 
-    - name: Copy configurations
-      ansible.builtin.copy:
-        src: "{{ nvim_config_src }}"
+    - name: Sync Neovim configuration
+      ansible.posix.synchronize:
+        src: "{{ nvim_config_src }}/"
         dest: /home/vagrant/.config/nvim/
-        mode: "0666"
+        delete: true
 
     - name: Install Rust (rustup)
       ansible.builtin.shell: |
@@ -84,7 +86,8 @@
       ansible.builtin.get_url:
         url: "https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz"
         dest: /tmp/go.tar.gz
-        mode: "0500"
+        mode: "0644"
+        checksum: "sha256:{{ go_checksum }}"
 
     - name: Extract Go
       become: true
@@ -92,6 +95,8 @@
         src: /tmp/go.tar.gz
         dest: /usr/local
         remote_src: true
+      args:
+        creates: /usr/local/go
 
     - name: Add Go to PATH
       become: true
