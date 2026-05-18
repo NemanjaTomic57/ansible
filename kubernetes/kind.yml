@@ -1,0 +1,33 @@
+---
+- name: Install kind on Debian
+  hosts: all
+  become: true
+
+  vars:
+    kind_version: "v0.31.0"
+
+  tasks:
+    - name: Get system architecture
+      ansible.builtin.command: uname -m
+      register: arch
+      changed_when: false
+
+    - name: Set kind architecture
+      ansible.builtin.set_fact:
+        kind_arch: >-
+          {{
+            'amd64' if arch.stdout == 'x86_64'
+            else 'arm64' if arch.stdout == 'aarch64'
+            else ''
+          }}
+
+    - name: Fail if architecture is unsupported
+      ansible.builtin.fail:
+        msg: "Unsupported architecture: {{ arch.stdout }}"
+      when: kind_arch == ''
+
+    - name: Download kind binary
+      ansible.builtin.get_url:
+        url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ kind_arch }}"
+        dest: /usr/local/bin/kind
+        mode: '0755'

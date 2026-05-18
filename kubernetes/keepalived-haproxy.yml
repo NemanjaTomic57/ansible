@@ -4,15 +4,15 @@
   become: true
 
   vars:
-    interface: enp0s8
+    interface: ens5
     router_id: 51
     auth_pass: 42
-    apiserver_vip: "192.168.60.10"
+    apiserver_vip: "192.168.64.10"
     apiserver_dest_port: 6221
     apiserver_src_port: 6443
-    apiserver1_ip: "192.168.60.11"
-    apiserver2_ip: "192.168.60.12"
-    apiserver3_ip: "192.168.60.13"
+    apiserver0_ip: "{{ hostvars['controlplane0']['ansible_host'] }}"
+    apiserver1_ip: "{{ hostvars['controlplane1']['ansible_host'] }}"
+    apiserver2_ip: "{{ hostvars['controlplane2']['ansible_host'] }}"
 
   tasks:
     - name: Download apt dependencies
