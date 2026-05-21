@@ -1,6 +1,6 @@
 ---
 - name: Install Helm
-  hosts: k8s
+  hosts: all
   become: true
 
   tasks:

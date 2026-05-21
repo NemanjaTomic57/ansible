@@ -1,7 +1,6 @@
 ---
 - name: Install AWS Ecosystem Tooling
   hosts: all
-  become: true
 
   vars:
     aws_cli_zip: "awscliv2.zip"
@@ -22,25 +21,19 @@
     #####################################################################
 
     - name: Update apt cache
+      become: true
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
 
     - name: Install required base packages
+      become: true
       ansible.builtin.apt:
         name:
           - gpg
-          - python3-pip
-          - python3-virtualenv
           - npm
-          - pipx
           - openjdk-25-jdk
         state: present
-
-    - name: Ensure pipx path is configured
-      ansible.builtin.command:
-        cmd: pipx ensurepath
-      changed_when: false
 
     #####################################################################
     # AWS CLI v2
@@ -59,6 +52,7 @@
         remote_src: true
 
     - name: Install AWS CLI v2
+      become: true
       ansible.builtin.command:
         cmd: /tmp/aws/install --update
       changed_when: true
@@ -86,6 +80,7 @@
         remote_src: true
 
     - name: Install AWS SAM CLI
+      become: true
       ansible.builtin.command:
         cmd: /tmp/sam-installation/install --update
       changed_when: true
@@ -95,27 +90,11 @@
     #####################################################################
 
     - name: Install latest AWS CDK
+      become: true
       community.general.npm:
         name: aws-cdk
         global: true
         state: latest
-
-    #####################################################################
-    # CLOUDFORMATION CLI
-    #####################################################################
-
-    - name: Create CloudFormation CLI virtual environment
-      ansible.builtin.command:
-        cmd: "virtualenv /home/vagrant/.venv"
-        creates: /home/vagrant/.venv/bin/activate
-
-    - name: Install CloudFormation CLI and plugins into venv
-      ansible.builtin.pip:
-        virtualenv: /home/vagrant/.venv
-        name:
-          - cloudformation-cli
-          - cloudformation-cli-python-plugin
-          - cloudformation-cli-java-plugin
 
     #####################################################################
     # Session Manager Plugin
@@ -128,6 +107,7 @@
         mode: '0644'
 
     - name: Install Session Manager Plugin
+      become: true
       ansible.builtin.apt:
         deb: /tmp/session-manager-plugin.deb
 
@@ -142,6 +122,7 @@
       register: kubectl_version
 
     - name: Download kubectl
+      become: true
       ansible.builtin.get_url:
         url: "https://dl.k8s.io/release/{{ kubectl_version.content | trim }}/bin/linux/amd64/kubectl"
         dest: /usr/local/bin/kubectl
@@ -174,6 +155,7 @@
         remote_src: true
 
     - name: Install eksctl
+      become: true
       ansible.builtin.copy:
         src: /tmp/eksctl
         dest: /usr/local/bin/eksctl
@@ -200,6 +182,7 @@
     #####################################################################
 
     - name: Add HashiCorp GPG key
+      become: true
       ansible.builtin.shell: |
         set -o pipefail
         curl -fsSL https://apt.releases.hashicorp.com/gpg | \
@@ -208,6 +191,7 @@
         creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
     - name: Add HashiCorp repository
+      become: true
       ansible.builtin.apt_repository:
         repo: >
           deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg]
@@ -217,6 +201,7 @@
         state: present
 
     - name: Update apt cache after adding HashiCorp repo
+      become: true
       ansible.builtin.apt:
         update_cache: true
 
@@ -225,6 +210,7 @@
     #####################################################################
 
     - name: Install Terraform and Packer
+      become: true
       ansible.builtin.apt:
         name:
           - terraform
@@ -234,55 +220,60 @@
     # DOCKER SERVICE
     #####################################################################
 
-    - name: Create keyrings directory
-      ansible.builtin.file:
-        path: /etc/apt/keyrings
-        state: directory
-        mode: "0755"
+    - name: Install Docker
+      become: true
 
-    - name: Download Docker GPG key
-      ansible.builtin.get_url:
-        url: https://download.docker.com/linux/debian/gpg
-        dest: /etc/apt/keyrings/docker.asc
-        mode: "0644"
+      block:
 
-    - name: Add Docker repository
-      ansible.builtin.shell: |
-        echo \
-        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
-        https://download.docker.com/linux/debian \
-        $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-        > /etc/apt/sources.list.d/docker.list
-      args:
-        creates: /etc/apt/sources.list.d/docker.list
+        - name: Create keyrings directory
+          ansible.builtin.file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: "0755"
 
-    - name: Install Docker packages
-      ansible.builtin.apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-          - docker-buildx-plugin
-          - docker-compose-plugin
-        state: present
-        update_cache: true
+        - name: Download Docker GPG key
+          ansible.builtin.get_url:
+            url: https://download.docker.com/linux/debian/gpg
+            dest: /etc/apt/keyrings/docker.asc
+            mode: "0644"
 
-    - name: Create docker group
-      ansible.builtin.group:
-        name: docker
-        state: present
+        - name: Add Docker repository
+          ansible.builtin.shell: |
+            echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+            https://download.docker.com/linux/debian \
+            $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+            > /etc/apt/sources.list.d/docker.list
+          args:
+            creates: /etc/apt/sources.list.d/docker.list
 
-    - name: Add docker group to user
-      ansible.builtin.user:
-        name: vagrant
-        groups: docker
-        append: true
+        - name: Install Docker packages
+          ansible.builtin.apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-buildx-plugin
+              - docker-compose-plugin
+            state: present
+            update_cache: true
 
-    - name: Enable Docker
-      ansible.builtin.service:
-        name: docker
-        enabled: true
-        state: started
+        - name: Create docker group
+          ansible.builtin.group:
+            name: docker
+            state: present
+
+        - name: Add docker group to user
+          ansible.builtin.user:
+            name: vagrant
+            groups: docker
+            append: true
+
+        - name: Enable Docker
+          ansible.builtin.service:
+            name: docker
+            enabled: true
+            state: started
 
     #####################################################################
     # VERIFY INSTALLATIONS
@@ -294,7 +285,6 @@
         echo "AWS CLI: $(aws --version)"
         echo "SAM CLI: $(sam --version)"
         echo "CDK: $(cdk --version)"
-        echo "CloudFormation CLI: $(cfn --version)"
         echo "kubectl: $(kubectl version --client --output=yaml | head -n 5)"
         echo "eksctl: $(eksctl version)"
         echo "Terraform: $(terraform version | head -n 1)"
