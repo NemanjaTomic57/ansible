@@ -1,14 +1,11 @@
 ---
-- name: Configure standalone Kafka broker
+- name: Configure Kafka
   hosts: all
 
   vars:
-    kafka: /home/vagrant/kafka
     kafka_cluster_id: "{{ kafka }}/cluster.id"
     kafka_logs: "{{ kafka }}/logs"
-    kafka_install_dir: "{{ kafka }}/kafka_2.13-4.2.0"
-    kafka_config: ./kafka/server.properties
-    kafka_bin: "{{ kafka_install_dir }}/bin"
+    kafka_config: /vagrant/kafka/server.properties
 
   tasks:
     - name: Check if cluster ID exists
@@ -38,41 +35,28 @@
     - name: Configure Kafka broker
       ansible.builtin.command: >
         {{ kafka_bin }}/kafka-storage.sh format
+        --standalone
         -t {{ kafka_uuid.stdout }}
         -c {{ kafka_config }}
       args:
         creates: "{{ kafka_logs }}/meta.properties"
 
-    - name: Create kafka systemd service
+    - name: Create Kafka systemd service
       become: true
-      ansible.builtin.copy:
+      ansible.builtin.template:
+        src: ./systemd/kafka.service.j2
         dest: /etc/systemd/system/kafka.service
         mode: '0644'
-        content: |
-          [Unit]
-          Description=Apache Kafka Server
-          After=network.target
-
-          [Service]
-          Type=simple
-          User=vagrant
-          Group=vagrant
-
-          ExecStart={{ kafka_bin }}/kafka-server-start.sh {{ kafka_config }}
-          ExecStop={{ kafka_bin }}/kafka-server-stop.sh
-
-          Restart=on-failure
-          RestartSec=10
-
-          [Install]
-          WantedBy=multi-user.target
 
     - name: Reload systemd
+      become: true
       ansible.builtin.systemd:
         daemon_reload: true
 
     - name: Enable and start Kafka
+      become: true
       ansible.builtin.systemd:
         name: kafka
         enabled: true
-        state: started
+        state: restarted
+
