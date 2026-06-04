@@ -1,0 +1,51 @@
+---
+- name: Install Confluent CLI
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Create APT keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download Confluent CLI GPG key
+      ansible.builtin.get_url:
+        url: https://packages.confluent.io/confluent-cli/deb/archive.key
+        dest: /tmp/confluent-cli.key
+        mode: "0644"
+
+    - name: Convert GPG key to keyring format
+      ansible.builtin.command:
+        cmd: >
+          gpg --dearmor
+          -o /etc/apt/keyrings/confluent-cli.gpg
+          /tmp/confluent-cli.key
+      args:
+        creates: /etc/apt/keyrings/confluent-cli.gpg
+
+    - name: Set permissions on keyring
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/confluent-cli.gpg
+        mode: "0644"
+
+    - name: Add Confluent CLI repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/confluent-cli.gpg] https://packages.confluent.io/confluent-cli/deb stable main"
+        filename: confluent-cli
+        state: present
+
+    - name: Install Confluent CLI
+      ansible.builtin.apt:
+        name: confluent-cli
+        state: present
+        update_cache: true
