@@ -29,6 +29,11 @@
         update_cache: true
         cache_valid_time: 3600
 
+    - name: Create FIFO queue for clipboard
+      ansible.builtin.command:
+        cmd: mkfifo /home/vagrant/clip
+        creates: /home/vagrant/clip
+
     - name: Check if nvim is already installed
       ansible.builtin.stat:
         path: "{{ nvim_install_dir }}/bin/nvim"
