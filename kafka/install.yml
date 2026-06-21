@@ -1,15 +1,14 @@
 ---
 - name: Install Kafka and add to PATH
   hosts: all
-
   vars:
     # Download variables
-    kafka_url: https://downloads.apache.org/kafka/4.2.0/kafka_2.13-4.2.0.tgz
-    kafka_archive: kafka_2.13-4.2.0.tgz
-
+    kafka_version: 4.2.1
+    kafka_url: "https://downloads.apache.org/kafka/{{ kafka_version }}/kafka_2.13-{{ kafka_version }}.tgz"
+    kafka_archive: "kafka_2.13-{{ kafka_version }}.tgz"
     # Installation path (use in inventory file)
-    kafka: /home/vagrant/kafka
-    kafka_install_dir: "{{ kafka }}/kafka_2.13-4.2.0"
+    kafka: /opt/kafka
+    kafka_install_dir: "{{ kafka }}/kafka_2.13-{{ kafka_version }}"
     kafka_bin: "{{ kafka_install_dir }}/bin"
 
   tasks:
