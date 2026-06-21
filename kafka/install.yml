@@ -14,7 +14,7 @@
   tasks:
     - name: Install dependencies
       become: true
-      ansible.builtin.dnf:
+      ansible.builtin.apt:
         name:
           - java-21-openjdk-devel
           - unzip
